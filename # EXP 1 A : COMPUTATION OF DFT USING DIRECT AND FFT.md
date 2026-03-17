@@ -1,4 +1,4 @@
-<img width="766" height="726" alt="image" src="https://github.com/user-attachments/assets/b7b0d798-99af-4ab7-a5a4-a9769d586e8d" /># EXP 1 A : COMPUTATION OF DFT USING DIRECT AND FFT
+# EXP 1 A : COMPUTATION OF DFT USING DIRECT AND FFT
 
 # AIM: 
 To Obtain DFT and FFT of a given sequence in SCILAB. 
