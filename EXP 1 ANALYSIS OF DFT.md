@@ -1,67 +1,88 @@
-# EXP 1 :  ANALYSIS OF DFT WITH AUDIO SIGNAL
-## AIM: 
-  To analyze audio signal by removing unwanted frequency. 
-  
-## APPARATUS REQUIRED: 
-   PC installed with SCILAB/Python. 
+## EXP 1 B :  ANALYSIS OF DFT WITH AUDIO SIGNAL
 
-## PROGRAM: 
+### AIM: 
+ To analyze DFT with Audio Signal  
+
+### APPARATUS REQUIRED: 
+PC installed with SCILAB/Python. 
+
+### PROGRAM: 
+#### Step 1: Install required packages
+```python
+!pip install -q librosa soundfile
 ```
-// ---- 1. READ AUDIO FILE ----
-// Replace 'metal_detector_sample.wav' with your actual file name
-[audio, fs] = wavread("C:\Users\acer\Downloads\1007.wav");
-
-// ---- 2. PRE-PROCESSING ----
-// If stereo (2 rows), convert to mono by averaging
-if size(audio, 1) == 2 then
-    audio = mean(audio, 'r'); // average across rows
-end
-
-// Normalize audio signal to range [-1, 1]
-audio = audio / max(abs(audio));
-N = length(audio);
-
-// ---- 3. PLOT TIME DOMAIN WAVEFORM ----
-t = (0:N-1) / fs;
-
-scf(0); // Open first figure window
-clf();
-plot(t, audio);
-xtitle("Time-Domain Audio Signal", "Time (s)", "Amplitude");
-xgrid();
-
-// ---- 4. COMPUTE DFT USING FFT ----
-Y = fft(audio);
-// We only need the first half of the FFT (positive frequencies)
-half_N = floor(N/2);
-Y_mag = abs(Y(1:half_N)) / N; 
-freqs = (0:half_N-1) * (fs / N);
-
-// ---- 5. PLOT MAGNITUDE SPECTRUM ----
-scf(1); // Open second figure window
-clf();
-plot(freqs, Y_mag);
-xtitle("Magnitude Spectrum (FFT)", "Frequency (Hz)", "Magnitude");
-xgrid();
-
-// ---- 6. FIND AND PRINT DOMINANT FREQUENCIES ----
-// gsort 'g' sorts globally, 'd' sorts in descending order
-[sorted_mags, indices] = gsort(Y_mag, 'g', 'd');
-
-printf("\n--- Audio Analysis ---\n");
-printf("Sampling Frequency: %d Hz\n", fs);
-printf("Top 5 dominant frequency components (Hz):\n");
-
-for i = 1:5
-    idx = indices(i);
-    printf("%d: %.2f Hz (Magnitude: %.4f)\n", i, freqs(idx), sorted_mags(i));
-end
-
+#### Step 2: Upload audio file
+```python
+from google.colab import files
+uploaded = files.upload()   # choose your .wav / .mp3 / .flac file
+filename = next(iter(uploaded.keys()))
+print("Uploaded:", filename)
 ```
+#### Step 3: Load audio
+```python
+import librosa, librosa.display
+import numpy as np
+import soundfile as sf
 
-## OUTPUT: 
-<img width="1914" height="1138" alt="image" src="https://github.com/user-attachments/assets/02ac31e8-cbcd-4a28-a9dd-3c7cfae7fb91" />
+y, sr = librosa.load(filename, sr=None, mono=True)  
+duration = len(y) / sr
+print(f"Sample rate = {sr} Hz, duration = {duration:.2f} s, samples = {len(y)}")
+```
+#### Step 4: Play audio
+```python
+import matplotlib.pyplot as plt
 
+n_fft = 2**14   
+Y = np.fft.rfft(y, n=n_fft)
+freqs = np.fft.rfftfreq(n_fft, 1/sr)
+magnitude = np.abs(Y)
 
-## RESULTS
-Thus, the given program was executed successfully and the output is verified.
+plt.figure(figsize=(12,4))
+plt.plot(freqs, magnitude)
+plt.xlim(0, sr/2)
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Magnitude")
+plt.title("FFT Magnitude Spectrum (linear scale)")
+plt.grid(True)
+plt.show()
+
+plt.figure(figsize=(12,4))
+plt.semilogy(freqs, magnitude+1e-12)
+plt.xlim(0, sr/2)
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Magnitude (log scale)")
+plt.title("FFT Magnitude Spectrum (log scale)")
+plt.grid(True)
+plt.show()
+```
+#### Step 6: Top 10 dominant frequencies
+```python
+N = 10
+idx = np.argsort(magnitude)[-N:][::-1]
+print("\nTop 10 Dominant Frequencies:")
+for i, k in enumerate(idx):
+    print(f"{i+1:2d}. {freqs[k]:8.2f} Hz  (Magnitude = {magnitude[k]:.2e})")
+Step 7: Spectrogram (STFT)
+n_fft = 2048
+hop_length = n_fft // 4
+D = librosa.stft(y, n_fft=n_fft, hop_length=hop_length, window='hann')
+S_db = librosa.amplitude_to_db(np.abs(D), ref=np.max)
+
+plt.figure(figsize=(12,5))
+librosa.display.specshow(S_db, sr=sr, hop_length=hop_length,
+                         x_axis='time', y_axis='hz')
+plt.colorbar(format="%+2.0f dB")
+plt.title("Spectrogram (dB)")
+plt.ylim(0, sr/2)
+plt.show()
+```
+#### AUDIO :
+[mixkit-ending-show-audience-clapping-478.wav](https://github.com/user-attachments/files/26217885/mixkit-ending-show-audience-clapping-478.wav)
+
+### OUTPUT: 
+<img width="586" height="291" alt="image" src="https://github.com/user-attachments/assets/e131ffc4-3375-483f-b63c-4c1a1d3d7af8" />
+<img width="586" height="285" alt="image" src="https://github.com/user-attachments/assets/12f26d8f-a000-4335-91b9-c2a8739e16bc" />
+<img width="691" height="609" alt="image" src="https://github.com/user-attachments/assets/048f2f21-e3c2-4887-83e2-aea010db3d02" />
+
+### RESULT
+Thus, The Analysis of DFT with Audio Signal is Verified.
